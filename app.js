@@ -24,7 +24,7 @@ function addTodo(event) {
   newTodo.classList.add("todo-item");
   todoDiv.appendChild(newTodo);
   //Add todo to local 
-  saveLocalTodos(todoInput.value);
+  // saveLocalTodos(todoInput.value);
   //Check Mark Button
   const completedButton = document.createElement("button");
   completedButton.innerHTML = '<i class="fas fa-check"></i>';
