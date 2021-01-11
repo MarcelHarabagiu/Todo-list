@@ -1,15 +1,27 @@
-//select DOM
-const todoInput = document.querySelector('.todo-input');
-const todoButton = document.querySelector('.todo-button');
-const todoList = document.querySelector('.todo-list');
-const filterOption = document.querySelector('.filter-todo');
+
+let todoInput;
+let todoButton;
+let todoList;
+let filterOption;
+
+
+// let document = {
+//   eventName: null,
+//   callback: null,
+//   addEventListener(eventName, callback) {
+//     this.eventName = eventName;
+//     this.callback = callback;
+//   },
+//   magicFunctionYouCantSeeEventSoDontTry(hiddenMagicEventOccured) {
+//     if (hiddenMagicEventOccured === 'DOMContentLoaded') {
+//       this.callback(event);
+//     }
+//   }
+// }
 
 
 //Event Listeners
-document.addEventListener("DOMContentLoaded", getTodos);
-todoButton.addEventListener('click', addTodo);
-todoList.addEventListener('click', deleteCheck);
-filterOption.addEventListener('change', filterTodo);
+document.addEventListener("DOMContentLoaded", DOMisReady);
 
 //Functions 
 function addTodo(event) {
@@ -58,7 +70,7 @@ function deleteCheck(e) {
     const todo = item.parentElement;
     todo.classList.toggle('completed');
   }
-
+  
 }
 
 function filterTodo(e) {
@@ -66,21 +78,21 @@ function filterTodo(e) {
   todos.forEach(function (todo) {
     switch (e.target.value) {
       case "all":
-        todo.style.display = "flex";
-        break;
+      todo.style.display = "flex";
+      break;
       case "completed":
-        if (todo.classList.contains("completed")) {
-          todo.style.display = "flex";
-        } else {
-          todo.style.display = "none";
-        }
-        break;
+      if (todo.classList.contains("completed")) {
+        todo.style.display = "flex";
+      } else {
+        todo.style.display = "none";
+      }
+      break;
       case "uncompleted":
-        if (!todo.classList.contains("completed")) {
-          todo.style.display = "flex";
-        } else {
-          todo.style.display = "none";
-        }
+      if (!todo.classList.contains("completed")) {
+        todo.style.display = "flex";
+      } else {
+        todo.style.display = "none";
+      }
     }
   });
 }
@@ -137,6 +149,19 @@ function getTodos() {
     //Append to list
     todoList.appendChild(todoDiv);
   });
+}
+
+function DOMisReady() {
+  //select DOM
+  todoInput = document.querySelector('.todo-input');
+  todoButton = document.querySelector('.todo-button');
+  todoList = document.querySelector('.todo-list');
+  filterOption = document.querySelector('.filter-todo');
+
+  getTodos();
+  todoButton.addEventListener('click', addTodo);
+  todoList.addEventListener('click', deleteCheck);
+  filterOption.addEventListener('change', filterTodo);
 }
 
 // formatting shift option F 
