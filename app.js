@@ -58,12 +58,14 @@ function deleteCheck(e) {
   // console.log(e.target);
   //delete todo
   if (item.classList[0] === "trash-btn") {
+  if (item.classList[0] === 'trash-btn') {
     const todo = item.parentElement;
     //Animation
     todo.classList.add('fall');
     todo.addEventListener('transitionend', function () {
       todo.remove();
     })
+    removeLocalTodos(todo); 
   }
   //Check mark
   if (item.classList[0] === "completed-btn") {
@@ -78,47 +80,54 @@ function filterTodo(e) {
   todos.forEach(function (todo) {
     switch (e.target.value) {
       case "all":
-      todo.style.display = "flex";
-      break;
+        todo.style.display = "flex";
+        break;
       case "completed":
-      if (todo.classList.contains("completed")) {
-        todo.style.display = "flex";
-      } else {
-        todo.style.display = "none";
-      }
-      break;
+        if (todo.classList.contains("completed")) {
+          todo.style.display = "flex";
+        } else {
+          todo.style.display = "none";
+        }
+        // break;
       case "uncompleted":
-      if (!todo.classList.contains("completed")) {
-        todo.style.display = "flex";
-      } else {
-        todo.style.display = "none";
-      }
+        if (!todo.classList.contains("completed")) {
+          todo.style.display = "flex";
+        } else {
+          todo.style.display = "none";
+        }
+        // break;
+      case "asdfomwe":
+        
     }
   });
 }
 
 
-// function saveLocalTodos(todo) {
-//   let todos;
-//   if (localStorage.getItem("todos") === null) {
-//     todos = [];
-//   } else {
-//     todos = JSON.parse(localStorage.getItem("todos"));
-//   }
-//   todos.push(todo);
-//   localStorage.setItem("todos", JSON.stringify(todos));
-// }
-// function removeLocalTodos(todo) {
-//   let todos;
-//   if (localStorage.getItem("todos") === null) {
-//     todos = [];
-//   } else {
-//     todos = JSON.parse(localStorage.getItem("todos"));
-//   }
-//   const todoIndex = todo.children[0].innerText;
-//   todos.splice(todos.indexOf(todoIndex), 1);
-//   localStorage.setItem("todos", JSON.stringify(todos));
-// }
+function saveLocalTodos(todo) {
+  let todos;
+  if (localStorage.getItem("todos") === null) {
+    todos = [];
+  } else {
+    todos = JSON.parse(localStorage.getItem("todos"));
+  }
+  todos.push(todo);
+  localStorage.setItem("todos", JSON.stringify(todos));
+}
+function removeLocalTodos(todo) {
+  let todos;
+  if (localStorage.getItem("todos") === null) {
+    todos = [];
+  } else {
+    todos = JSON.parse(localStorage.getItem("todos"));
+  }
+  const todoText = todo.children[0].innerText; // fucking stupid
+
+  let orderInArray = todos.indexOf(todoText); // actual integer position representing order in list
+  let howManyItemsInArrayToDelete = 1;
+
+  todos.splice(orderinArray, howManyItemsInArrayToDelete);
+  localStorage.setItem("todos", JSON.stringify(todos));
+}
 
 function getTodos() {
   let todos;
