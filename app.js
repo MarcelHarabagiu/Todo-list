@@ -152,13 +152,22 @@ function getTodos() {
     todoDiv.appendChild(newTodo);
     //Check Mark Button
     const completedButton = document.createElement("button");
-    completedButton.innerHTML = '<i class="fas fa-check"></i>';
     completedButton.classList.add("completed-btn");
     todoDiv.appendChild(completedButton);
+    // completedButton.innerHTML = '<i class="fas fa-check"></i>';
+    const icon = document.createElement('i')
+    icon.classList.add("fas");
+    icon.classList.add("fa-check");
+    completedButton.appendChild(icon);    
     //Check Trash Button
     const trashButton = document.createElement('button');
-    trashButton.innerHTML = '<i class="fas fa-trash"></i>';
     trashButton.classList.add("trash-btn");
+    // trashButton.innerHTML = '<i class="fas fa-trash"></i>';
+    const iconTrashButton = document.createElement('iconTrashButton')
+    iconTrashButton.classList.add("fas");
+    iconTrashButton.classList.add("fa-trash"); 
+    trashButton.appendChild(iconTrashButton);   
+
     todoDiv.appendChild(trashButton);
     //Append to list
     todoList.appendChild(todoDiv);
