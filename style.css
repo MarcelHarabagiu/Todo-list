@@ -99,10 +99,14 @@ form button:hover {
   text-decoration: line-through;
   opacity: 0.5;
 }
+.state-cantfix {
+  color: red;
+  font-weight: bold;
+}
 
 /*CUSTOM SELECTOR */
 select {
-  -webkit-appearance: none;
+-webkit-appearance: none;
   -moz-appearance: none;
   -ms-appearance: none;
   appearance: none;
