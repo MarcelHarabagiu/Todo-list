@@ -169,22 +169,59 @@ function getTodos() {
     trashButton.appendChild(iconTrashButton);   
 
     todoDiv.appendChild(trashButton);
+    createCompletedButton(todoDiv);
+    createTrashButton(todoDiv)
     //Append to list
     todoList.appendChild(todoDiv);
   });
+}
+function createTrashButton(todoDiv) {
+  const trashButton = document.createElement('button');
+  trashButton.addEventListener('click', handlerClickTrashButton);
+  trashButton.classList.add('trash-btn');
+  const iconTrashButton = document.createElement('iconTrashButton');
+  iconTrashButton.classList.add('fas', 'fa-trash');
+  trashButton.appendChild(iconTrashButton);
+  todoDiv.appendChild(trashButton);
+}
+
+function createCompletedButton(todoDiv) {
+  const completedButton = document.createElement('button');
+  completedButton.addEventListener('click', handlerClickCompletedButton);
+  completedButton.classList.add('completed-btn');
+  todoDiv.appendChild(completedButton);
+  const icon = document.createElement('i');
+  icon.classList.add('fas', 'fa-check');
+  completedButton.appendChild(icon);
+}
+
+function handlerClickCompletedButton(event) {
+  const item = event.target;
+  const todo = item.parentElement;
+  todo.classList.toggle('completed');
+}
+function handlerClickTrashButton(event) {
+  const item = event.target;
+  const todo = item.parentElement;
+  todo.classList.add('fall');
+  todo.addEventListener('transitionend', function () {
+    todo.remove();
+  })
+  removeLocalTodos(todo); 
 }
 
 function DOMisReady() {
   //select DOM
   todoInput = document.querySelector('.todo-input');
   todoButton = document.querySelector('.todo-button');
-  todoList = document.querySelector('.todo-list');
   filterOption = document.querySelector('.filter-todo');
+  todoList = document.querySelector('.todo-list');
 
   getTodos();
   todoButton.addEventListener('click', addTodo);
-  todoList.addEventListener('click', deleteCheck);
   filterOption.addEventListener('change', filterTodo);
+
+  buildDropdownFilterOptions();
 }
 
 // formatting shift option F 
