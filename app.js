@@ -1,15 +1,18 @@
 class Main {
 
   // clas variables / properties
-  myLocalStorage;
-  myModel
+
+  // class type vars
+  modelClass
+  localStorageClass;
+
+  // vars
   todoInput
   todoButton
   filterOption
   todoList
   todoButton
   filterOption
-  modelTodos;
 
   STATES = {
     COMPLETED: 1,
@@ -23,9 +26,8 @@ class Main {
   ];
 
   constructor() {
-    // this.myLocalStorage = new MyLocalStorage();
-    // this.myModel = new MyModel();
-    this.modelTodos = [];
+    // this.localStorageClass = new MyLocalStorage();
+    this.modelClass = new ModelTodos();
   };
   initPropertiesFromDom() {
 
@@ -59,7 +61,7 @@ class Main {
     todos.forEach( (item, index, array) => {
       const isFirst = index === 0;
       const isLast = index === array.length - 1;
-      const newId = this.addToModel(item.text, item.time, item.state);
+      const newId = this.modelClass.addToModel(item.text, item.time, item.state);
       const todoElement = this.createAndShowElementOnDom(item.text, newId, item.time);
       if (item.state === this.STATES.COMPLETED) {
         this.toggleCompleted(todoElement);
@@ -81,7 +83,7 @@ class Main {
   }
   createElementsFromStorageList() {
     listOfTodoFromStorage.forEach( item => {
-      const newId = this.addToModel(item.text, item.time, item.state);
+      const newId = this.modelClass.addToModel(item.text, item.time, item.state);
       const todoElement = this.createAndShowElementOnDom(item.text, newId, item.time);
       if (item.state === this.STATES.COMPLETED) {
         toggleCompleted(todoElement);
@@ -94,7 +96,7 @@ class Main {
   addTodo() {
     const curTime = new Date().getTime();
     const todoText = this.todoInput.value;
-    const newId = this.addToModel(todoText, curTime);
+    const newId = this.modelClass.addToModel(todoText, curTime);
     this.todoInput.value = '';
     this.createAndShowElementOnDom(todoText, newId, curTime);
     this.saveTheUpdatedModel();
@@ -163,25 +165,8 @@ class Main {
     });
   }
   saveTheUpdatedModel(itemToRemove) {
-    let modelToSave = this.filterModelForSaving(itemToRemove);
+    let modelToSave = this.modelClass.filterModelForSaving(itemToRemove);
     localStorage.setItem('todos', JSON.stringify(modelToSave));
-  }
-  filterModelForSaving(itemToRemove) {
-    const filteredModel = this.modelTodos.filter(item => item !== itemToRemove);
-    const nonIdList = filteredModel.map(item => {
-      return {
-        text: item.text,
-        time: item.time,
-        state: item.state
-      }
-    });
-    return nonIdList;
-  }
-  addToModel(text, time, state) {
-    const isFirst = this.modelTodos.length === 0;
-    const lastInList = this.modelTodos[this.modelTodos.length - 1];
-    const id = isFirst ? 0 : lastInList.id + 1;
-    this.modelTodos.push({ id, text, time, state }); // es6
   }
   createCantFixButton(todoDiv) {
     const button = document.createElement('button');
@@ -211,19 +196,12 @@ class Main {
     icon.classList.add('fas', 'fa-check');
     completedButton.appendChild(icon);
   }
-
   getIdFromEvent(clickEvent) {
     const item = clickEvent.target;
     const todo = item.parentElement;
     const modelId = todo.getAttribute('modelid'); // this is a string
     return Number(modelId);
   }
-  getItemInModelFromEvent(clickEvent) {
-    const modelId = getIdFromEvent(clickEvent);
-    const itemInModel = modelTodos.find(item => item.id === modelId);
-    return itemInModel;
-  }
-
   toggleCompleted(element) {
     element.classList.toggle('completed');
   }
@@ -231,7 +209,8 @@ class Main {
     element.classList.toggle('state-cantfix');
   }
   updateModelItemState(clickEvent, state) {
-    const itemInModel = getItemInModelFromEvent(clickEvent);
+    const modelId = this.getIdFromEvent(clickEvent);
+    const itemInModel = getItemInModelFromEvent(modelId);
     if (itemInModel.state === state) {
       itemInModel.state = undefined;
     } else {
@@ -249,7 +228,8 @@ class Main {
   handlerClickTrashButton(event) {
     const item = event.target;
     const todo = item.parentElement;
-    const itemInModel = getItemInModelFromEvent(event);
+    const modelId = this.getIdFromEvent(clickEvent);
+    const itemInModel = getItemInModelFromEvent(modelId);
     if (itemInModel) {
       animateElementAway(todo);
       saveTheUpdatedModel(itemInModel);
@@ -274,10 +254,35 @@ class Main {
 }
 // END MAIN CLASS
 
-class MyModel {
+class ModelTodos {
+  // class properties
+  modelTodos
+
   constructor() {
+    this.modelTodos = [];
   }
 
+  filterModelForSaving(itemToRemove) {
+    const filteredModel = this.modelTodos.filter(item => item !== itemToRemove);
+    const nonIdList = filteredModel.map(item => {
+      return {
+        text: item.text,
+        time: item.time,
+        state: item.state
+      }
+    });
+    return nonIdList;
+  }
+  addToModel(text, time, state) {
+    const isFirst = this.modelTodos.length === 0;
+    const lastInList = this.modelTodos[this.modelTodos.length - 1];
+    const id = isFirst ? 0 : lastInList.id + 1;
+    this.modelTodos.push({ id, text, time, state }); // es6
+  }
+  getItemInModelFromEvent(modelId) {
+    const itemInModel = this.modelTodos.find(item => item.id === modelId);
+    return itemInModel;
+  }
 }
 class MyLocalStorage {
 }
