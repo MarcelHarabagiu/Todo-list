@@ -1,257 +1,290 @@
+class Main {
 
-let todoInput;
-let todoButton;
-let todoList;
-let filterOption;
+  // clas variables / properties
+  myLocalStorage;
+  myModel
+  todoInput
+  todoButton
+  filterOption
+  todoList
+  todoButton
+  filterOption
+  modelTodos;
 
-// enum
-const STATES = {
-  COMPLETED: 1,
-  CANT_FIX: 2
-}
+  STATES = {
+    COMPLETED: 1,
+    CANT_FIX: 2
+  }
+  filterDropdownOptions = [
+    { text: 'All', sortFunction: this.filterTodoAll },
+    { text: 'Completed', sortFunction: this.filterTodoCompleted },
+    { text: 'Not Yet Completed', sortFunction: this.filterTodoUnCompleted },
+    { text: 'Cant Fix', sortFunction: this.filterTodoCantFix }
+  ];
 
-const filterDropdownOptions = [
-  { text: 'All', clickAction: filterTodoAll },
-  { text: 'Completed', clickAction: filterTodoCompleted },
-  { text: 'Not Yet Completed', clickAction: filterTodoUnCompleted },
-  { text: 'Cant Fix', clickAction: filterTodoCantFix }
-];
+  constructor() {
+    // this.myLocalStorage = new MyLocalStorage();
+    // this.myModel = new MyModel();
+    this.modelTodos = [];
+  };
+  initPropertiesFromDom() {
 
-const modelTodos = [];
+    //select DOM
+    this.todoInput = document.querySelector('.todo-input');
+    this.todoButton = document.querySelector('.todo-button');
+    this.filterOption = document.querySelector('.filter-todo');
+    this.todoList = document.querySelector('.todo-list');
 
-window.onload = DOMisReady;
+    // javasript this issue scoping hack
+    // javascript shortcomings
+    this.addTodo = this.addTodo.bind(this);
+    this.filterTodo = this.filterTodo.bind(this);
+    // end hack
 
-function buildDropdownFilterOptions() {
-  const filterList = document.querySelector('.filter-todo');
-  filterDropdownOptions.forEach( item => {
-    const text = item.text;
-    const option = document.createElement('option');
-    filterList.appendChild(option);
-    option.text = text
-    option.value = text;
-  });
-}
+    this.todoButton.addEventListener('click', this.addTodo);
+    this.filterOption.addEventListener('change', this.filterTodo);
 
-function filterTodoAll() {
-  todoList.childNodes.forEach((todo) => {
-    todo.style.display = 'flex';
-  });
-}
-function filterTodoCompleted() {
-  todoList.childNodes.forEach((todo) => {
-    if (todo.classList.contains('completed')) {
-      todo.style.display = 'flex';
+    const listFromStorage = this.getTodos();
+    this.buildDropdownFilterOptions(listFromStorage);
+  };
+  getTodos() {
+    let todos;
+    if (localStorage.getItem('todos') === null) {
+      todos = [];
     } else {
-      todo.style.display = 'none';
+      todos = JSON.parse(localStorage.getItem('todos'));
     }
-  });
-}
-function filterTodoUnCompleted() {
-  todoList.childNodes.forEach((todo) => {
-    if (!todo.classList.contains('completed')) {
+
+    // forEach ( current, index, array )
+    todos.forEach( (item, index, array) => {
+      const isFirst = index === 0;
+      const isLast = index === array.length - 1;
+      const newId = this.addToModel(item.text, item.time, item.state);
+      const todoElement = this.createAndShowElementOnDom(item.text, newId, item.time);
+      if (item.state === this.STATES.COMPLETED) {
+        this.toggleCompleted(todoElement);
+      }
+      if (item.state === this.STATES.CANT_FIX) {
+        this.toggleCantFix(todoElement);
+      }
+    });
+  }
+  buildDropdownFilterOptions() {
+    const filterList = document.querySelector('.filter-todo');
+    this.filterDropdownOptions.forEach(item => {
+      const text = item.text;
+      const optionElement = document.createElement('option');
+      filterList.appendChild(optionElement);
+      optionElement.text = text
+      optionElement.value = text;
+    });
+  }
+  createElementsFromStorageList() {
+    listOfTodoFromStorage.forEach( item => {
+      const newId = this.addToModel(item.text, item.time, item.state);
+      const todoElement = this.createAndShowElementOnDom(item.text, newId, item.time);
+      if (item.state === this.STATES.COMPLETED) {
+        toggleCompleted(todoElement);
+      }
+      if (item.state === this.STATES.CANT_FIX) {
+        toggleCantFix(todoElement);
+      }
+    });
+  }
+  addTodo() {
+    const curTime = new Date().getTime();
+    const todoText = this.todoInput.value;
+    const newId = this.addToModel(todoText, curTime);
+    this.todoInput.value = '';
+    this.createAndShowElementOnDom(todoText, newId, curTime);
+    this.saveTheUpdatedModel();
+  }
+  createAndShowElementOnDom(text, id, time) {
+    const todoDiv = document.createElement('div');
+    todoDiv.classList.add('todo');
+    const newTodo = document.createElement('li');
+    const timeElement = document.createElement('div');
+
+    let curTime = new Date();
+    let oldTime = new Date(time);
+    let deltaTime = curTime - oldTime; // number
+    let deltaDate = new Date(deltaTime);
+
+    // or
+    // new Date(new Date() - new Date(deltaTime))
+
+    timeElement.innerText = `(${deltaDate.getMinutes()} min old)`;
+    newTodo.innerText = text;
+    newTodo.classList.add('todo-item');
+    todoDiv.setAttribute('modelid', id);
+    todoDiv.appendChild(newTodo);
+    todoDiv.appendChild(timeElement);
+    this.todoList.appendChild(todoDiv);
+    this.createCompletedButton(todoDiv);
+    this.createTrashButton(todoDiv);
+    this.createCantFixButton(todoDiv);
+    return todoDiv;
+  }
+  filterTodo(e) {
+    let index = e.target.selectedIndex;
+    let objectInArray = this.filterDropdownOptions[index];
+    objectInArray.sortFunction.call(this);
+  }
+  filterTodoAll() {
+    this.todoList.childNodes.forEach((todo) => {
       todo.style.display = 'flex';
+    });
+  }
+  filterTodoCompleted() {
+    this.todoList.childNodes.forEach((todo) => {
+      if (todo.classList.contains('completed')) {
+        todo.style.display = 'flex';
+      } else {
+        todo.style.display = 'none';
+      }
+    });
+  }
+  filterTodoUnCompleted() {
+    this.todoList.childNodes.forEach((todo) => {
+      if (!todo.classList.contains('completed')) {
+        todo.style.display = 'flex';
+      } else {
+        todo.style.display = 'none';
+      }
+    });
+  }
+  filterTodoCantFix() {
+    this.todoList.childNodes.forEach((todo) => {
+      if (todo.classList.contains('state-cantfix')) {
+        todo.style.display = 'flex';
+      } else {
+        todo.style.display = 'none';
+      }
+    });
+  }
+  saveTheUpdatedModel(itemToRemove) {
+    let modelToSave = this.filterModelForSaving(itemToRemove);
+    localStorage.setItem('todos', JSON.stringify(modelToSave));
+  }
+  filterModelForSaving(itemToRemove) {
+    const filteredModel = this.modelTodos.filter(item => item !== itemToRemove);
+    const nonIdList = filteredModel.map(item => {
+      return {
+        text: item.text,
+        time: item.time,
+        state: item.state
+      }
+    });
+    return nonIdList;
+  }
+  addToModel(text, time, state) {
+    const isFirst = this.modelTodos.length === 0;
+    const lastInList = this.modelTodos[this.modelTodos.length - 1];
+    const id = isFirst ? 0 : lastInList.id + 1;
+    this.modelTodos.push({ id, text, time, state }); // es6
+  }
+  createCantFixButton(todoDiv) {
+    const button = document.createElement('button');
+    button.innerText = 'cant fix';
+    this.handlerClickCantFixButton = this.handlerClickCantFixButton.bind(this);
+    button.addEventListener('click', this.handlerClickCantFixButton);
+    todoDiv.appendChild(button);
+  }
+  createTrashButton(todoDiv) {
+    const trashButton = document.createElement('button');
+    this.handlerClickTrashButton = this.handlerClickTrashButton.bind(this);
+    trashButton.addEventListener('click', this.handlerClickTrashButton);
+    trashButton.classList.add('trash-btn');
+    const iconTrashButton = document.createElement('iconTrashButton');
+    iconTrashButton.classList.add('fas', 'fa-trash');
+    trashButton.appendChild(iconTrashButton);
+    todoDiv.appendChild(trashButton);
+  }
+
+  createCompletedButton(todoDiv) {
+    const completedButton = document.createElement('button');
+    this.handlerClickCompletedButton = this.handlerClickCompletedButton.bind(this);
+    completedButton.addEventListener('click', this.handlerClickCompletedButton);
+    completedButton.classList.add('completed-btn');
+    todoDiv.appendChild(completedButton);
+    const icon = document.createElement('i');
+    icon.classList.add('fas', 'fa-check');
+    completedButton.appendChild(icon);
+  }
+
+  getIdFromEvent(clickEvent) {
+    const item = clickEvent.target;
+    const todo = item.parentElement;
+    const modelId = todo.getAttribute('modelid'); // this is a string
+    return Number(modelId);
+  }
+  getItemInModelFromEvent(clickEvent) {
+    const modelId = getIdFromEvent(clickEvent);
+    const itemInModel = modelTodos.find(item => item.id === modelId);
+    return itemInModel;
+  }
+
+  toggleCompleted(element) {
+    element.classList.toggle('completed');
+  }
+  toggleCantFix(element) {
+    element.classList.toggle('state-cantfix');
+  }
+  updateModelItemState(clickEvent, state) {
+    const itemInModel = getItemInModelFromEvent(clickEvent);
+    if (itemInModel.state === state) {
+      itemInModel.state = undefined;
     } else {
-      todo.style.display = 'none';
+      itemInModel.state = state;
     }
-  });
-}
-function filterTodoCantFix() {
-  todoList.childNodes.forEach((todo) => {
-    if (todo.classList.contains('state-cantfix')) {
-      todo.style.display = 'flex';
+  }
+  handlerClickCompletedButton(event) {
+    const item = event.target;
+    const todo = item.parentElement;
+    toggleCompleted(todo);
+
+    this.updateModelItemState(event, STATES.COMPLETED);
+    saveTheUpdatedModel();
+  }
+  handlerClickTrashButton(event) {
+    const item = event.target;
+    const todo = item.parentElement;
+    const itemInModel = getItemInModelFromEvent(event);
+    if (itemInModel) {
+      animateElementAway(todo);
+      saveTheUpdatedModel(itemInModel);
     } else {
-      todo.style.display = 'none';
+      console.log('we fucked up finding the item in the model correctly');
     }
-  });
-}
-const saveTheUpdatedModel = (itemToRemove) => {
-  let modelToSave = filterModelForSaving(itemToRemove);
-  localStorage.setItem('todos', JSON.stringify(modelToSave));
-}
-
-//Functions 
-function addTodo() {
-  const curTime = new Date().getTime();
-  const todoText = todoInput.value;
-  const newId = addToModel(todoText, curTime);
-  todoInput.value = '';
-  createAndShowElementOnDom(todoText, newId, curTime);
-  saveTheUpdatedModel();
-}
-
-let addToModel = (text, time, state) => {
-  const id = (modelTodos.length === 0) ? 0 : modelTodos[modelTodos.length-1].id + 1;
-  modelTodos.push({ id, text, time, state });
-  return id;
-}
-let createAndShowElementOnDom = (text, id, time) => {
-  const todoDiv = document.createElement('div');
-  todoDiv.classList.add('todo');
-  const newTodo = document.createElement('li');
-  const timeElement = document.createElement('div');
-
-  let curTime = new Date();
-  let oldTime = new Date(time);
-  let deltaTime = curTime - oldTime; // number
-  let deltaDate = new Date(deltaTime);
-
-  // or 
-  // new Date(new Date() - new Date(deltaTime))
-
-  timeElement.innerText = `(${deltaDate.getMinutes()} min old)`;
-  newTodo.innerText = text;
-  newTodo.classList.add('todo-item');
-  todoDiv.setAttribute('modelid', id);
-  todoDiv.appendChild(newTodo);
-  todoDiv.appendChild(timeElement);
-  todoList.appendChild(todoDiv);
-  createCompletedButton(todoDiv);
-  createTrashButton(todoDiv);
-  createCantFixButton(todoDiv);
-  return todoDiv;
-}
-
-function filterTodo(e) {
-  let index = e.target.selectedIndex;
-  let objectInArray = filterDropdownOptions[index];
-  objectInArray.clickAction();
-}
-
-function getTodos() {
-  let todos;
-  if (localStorage.getItem('todos') === null) {
-    todos = [];
-  } else {
-    todos = JSON.parse(localStorage.getItem('todos'));
   }
-  todos.forEach(item => {
-    const newId = addToModel(item.text, item.time, item.state); // TODO ionut make sure update isnt called on each itteration of the loop and only when the loop ends
-    const todoElement = createAndShowElementOnDom(item.text, newId, item.time);
-    if (item.state === STATES.COMPLETED) {
-      toggleCompleted(todoElement);
-    }
-    if (item.state === STATES.CANT_FIX) {
-      toggleCantFix(todoElement);
-    }
-  });
-}
-function createCantFixButton(todoDiv) {
-  const button = document.createElement('button');
-  button.innerText = 'cant fix';
-  button.addEventListener('click', handlerClickCantFixButton);
-  todoDiv.appendChild(button);
-}
-function createTrashButton(todoDiv) {
-  const trashButton = document.createElement('button');
-  trashButton.addEventListener('click', handlerClickTrashButton);
-  trashButton.classList.add('trash-btn');
-  const iconTrashButton = document.createElement('iconTrashButton');
-  iconTrashButton.classList.add('fas', 'fa-trash');
-  trashButton.appendChild(iconTrashButton);
-  todoDiv.appendChild(trashButton);
-}
-
-function createCompletedButton(todoDiv) {
-  const completedButton = document.createElement('button');
-  completedButton.addEventListener('click', handlerClickCompletedButton);
-  completedButton.classList.add('completed-btn');
-  todoDiv.appendChild(completedButton);
-  const icon = document.createElement('i');
-  icon.classList.add('fas', 'fa-check');
-  completedButton.appendChild(icon);
-}
-
-let getIdFromEvent = (clickEvent) => {
-  const item = clickEvent.target;
-  const todo = item.parentElement;
-  const modelId = todo.getAttribute('modelid'); // this is a string
-  return Number(modelId);
-}
-let getTextFromEvent = (clickEvent) => {
-  const item = clickEvent.target;
-  const todo = item.parentElement;
-  const text = todo.innerText;
-  return text;
-}
-let getItemInModelFromEvent = (clickEvent) => {
-  const modelId = getIdFromEvent(clickEvent);
-  const itemInModel = modelTodos.find(item => item.id === modelId);
-  return itemInModel;
-}
-let filterModelForSaving = (itemToRemove) => {
-  const filteredModel = modelTodos.filter(item => item !== itemToRemove);
-  const nonIdList = filteredModel.map(item => {
-    return {
-      text: item.text,
-      time: item.time,
-      state: item.state
-    }
-  });
-  return nonIdList;
-}
-const toggleCompleted = (element) => {
-  element.classList.toggle('completed');
-}
-const toggleCantFix = (element) => {
-  element.classList.toggle('state-cantfix');
-}
-function handlerClickCompletedButton(event) {
-  const item = event.target;
-  const todo = item.parentElement;
-  toggleCompleted(todo);
-
-  const itemInModel = getItemInModelFromEvent(event);
-  if (itemInModel.state === STATES.COMPLETED) {
-    itemInModel.state = undefined;
-  } else {
-    itemInModel.state = STATES.COMPLETED;
+  handlerClickCantFixButton(event) {
+    const item = event.target;
+    const todo = item.parentElement;
+    toggleCantFix(todo);
+    this.updateModelItemState(event, STATES.CANT_FIX);
+    saveTheUpdatedModel();
   }
-  saveTheUpdatedModel();
-}
-function handlerClickTrashButton(event) {
-  const item = event.target;
-  const todo = item.parentElement;
-  const text = getTextFromEvent(event);
 
-  const itemInModel = getItemInModelFromEvent(event);
-  if (itemInModel) {
-    animateElementAway(todo);
-    saveTheUpdatedModel(itemInModel);
-  } else {
-    console.log('we fucked up finding the item in the model correctly');
+  animateElementAway(element) {
+    element.classList.add('fall');
+    element.addEventListener('transitionend', function () {
+      element.remove();
+    });
   }
 }
-function handlerClickCantFixButton(event) {
-  const item = event.target;
-  const todo = item.parentElement;
-  toggleCantFix(todo);
+// END MAIN CLASS
 
-  const itemInModel = getItemInModelFromEvent(event);
-  if (itemInModel.state === STATES.CANT_FIX) {
-    itemInModel.state = undefined;
-  } else {
-    itemInModel.state = STATES.CANT_FIX;
+class MyModel {
+  constructor() {
   }
-  saveTheUpdatedModel();
+
+}
+class MyLocalStorage {
 }
 
-let animateElementAway = (element) => {
-  element.classList.add('fall');
-  element.addEventListener('transitionend', function () {
-    element.remove();
-  });
-}
+const main = new Main();
 
-function DOMisReady() {
-  //select DOM
-  todoInput = document.querySelector('.todo-input');
-  todoButton = document.querySelector('.todo-button');
-  filterOption = document.querySelector('.filter-todo');
-  todoList = document.querySelector('.todo-list');
-
-  todoButton.addEventListener('click', addTodo);
-  filterOption.addEventListener('change', filterTodo);
-  
-  getTodos();
-  buildDropdownFilterOptions();
+// window.onload = main.initPropertiesFromDom; ---> scope of "this" in Main becomes the same as whats window.onload
+window.onload = () => {
+  main.initPropertiesFromDom();
 }
