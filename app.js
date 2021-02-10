@@ -25,7 +25,10 @@ class Main {
     { text: 'Cant Fix', sortFunction: this.filterTodoCantFix }
   ];
 
-  constructor() {
+  constructor(onLoad) {
+    onLoad = () => {
+      this.initPropertiesFromDom();
+    }
     // this.localStorageClass = new MyLocalStorage();
     this.modelClass = new ModelTodos();
   };
@@ -254,6 +257,13 @@ class Main {
 }
 // END MAIN CLASS
 
+
+
+
+
+
+
+
 class ModelTodos {
   // class properties
   modelTodos
@@ -287,9 +297,14 @@ class ModelTodos {
 class MyLocalStorage {
 }
 
-const main = new Main();
+
+
+
+
+
+
+
+
 
 // window.onload = main.initPropertiesFromDom; ---> scope of "this" in Main becomes the same as whats window.onload
-window.onload = () => {
-  main.initPropertiesFromDom();
-}
+const main = new Main(document.onload);
