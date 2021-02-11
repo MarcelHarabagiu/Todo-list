@@ -5,12 +5,12 @@ class Main {
   // class type vars
   modelClass
   localStorageClass;
+  filterTodosClass;
 
   // vars
   todoInput
   todoButton
   filterOption
-  todoList
   todoButton
   filterOption
 
@@ -18,16 +18,12 @@ class Main {
     COMPLETED: 1,
     CANT_FIX: 2
   }
-  filterDropdownOptions = [
-    { text: 'All', sortFunction: this.filterTodoAll },
-    { text: 'Completed', sortFunction: this.filterTodoCompleted },
-    { text: 'Not Yet Completed', sortFunction: this.filterTodoUnCompleted },
-    { text: 'Cant Fix', sortFunction: this.filterTodoCantFix }
-  ];
+
 
   constructor() {
     this.localStorageClass = new MyLocalStorage();
     this.modelClass = new ModelTodos();
+    this.filterTodosClass = new FilterTodosClass();
     this.initPropertiesFromDom();
   };
   initPropertiesFromDom() {
@@ -36,7 +32,6 @@ class Main {
     this.todoInput = document.querySelector('.todo-input');
     this.todoButton = document.querySelector('.todo-button');
     this.filterOption = document.querySelector('.filter-todo');
-    this.todoList = document.querySelector('.todo-list');
 
     // javasript this issue scoping hack
     // javascript shortcomings
@@ -49,18 +44,8 @@ class Main {
 
     const listFromStorage = this.localStorageClass.getTodos();
     this.createElementsFromStorageList(listFromStorage);
-    this.buildDropdownFilterOptions();
+    this.filterTodosClass.buildDropdownFilterOptions();
   };
-  buildDropdownFilterOptions() {
-    const filterList = document.querySelector('.filter-todo');
-    this.filterDropdownOptions.forEach(item => {
-      const text = item.text;
-      const optionElement = document.createElement('option');
-      filterList.appendChild(optionElement);
-      optionElement.text = text
-      optionElement.value = text;
-    });
-  }
   createElementsFromStorageList(listOfTodoFromStorage) {
     listOfTodoFromStorage.forEach( item => {
       const newId = this.modelClass.addToModel(item.text, item.time, item.state);
@@ -83,6 +68,7 @@ class Main {
     this.localStorageClass.saveTheUpdatedModel(modelToSave);
   }
   createAndShowElementOnDom(text, id, time) {
+    const todoList = document.querySelector('.todo-list');
     const todoDiv = document.createElement('div');
     todoDiv.classList.add('todo');
     const newTodo = document.createElement('li');
@@ -102,7 +88,7 @@ class Main {
     todoDiv.setAttribute('modelid', id);
     todoDiv.appendChild(newTodo);
     todoDiv.appendChild(timeElement);
-    this.todoList.appendChild(todoDiv);
+    todoList.appendChild(todoDiv);
     this.createCompletedButton(todoDiv);
     this.createTrashButton(todoDiv);
     this.createCantFixButton(todoDiv);
@@ -110,40 +96,7 @@ class Main {
   }
   filterTodo(e) {
     let index = e.target.selectedIndex;
-    let objectInArray = this.filterDropdownOptions[index];
-    objectInArray.sortFunction.call(this);
-  }
-  filterTodoAll() {
-    this.todoList.childNodes.forEach((todo) => {
-      todo.style.display = 'flex';
-    });
-  }
-  filterTodoCompleted() {
-    this.todoList.childNodes.forEach((todo) => {
-      if (todo.classList.contains('completed')) {
-        todo.style.display = 'flex';
-      } else {
-        todo.style.display = 'none';
-      }
-    });
-  }
-  filterTodoUnCompleted() {
-    this.todoList.childNodes.forEach((todo) => {
-      if (!todo.classList.contains('completed')) {
-        todo.style.display = 'flex';
-      } else {
-        todo.style.display = 'none';
-      }
-    });
-  }
-  filterTodoCantFix() {
-    this.todoList.childNodes.forEach((todo) => {
-      if (todo.classList.contains('state-cantfix')) {
-        todo.style.display = 'flex';
-      } else {
-        todo.style.display = 'none';
-      }
-    });
+    this.filterTodosClass.filterByIndex(index);
   }
   createCantFixButton(todoDiv) {
     const button = document.createElement('button');
