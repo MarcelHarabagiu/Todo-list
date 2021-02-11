@@ -7,6 +7,7 @@ class Main {
   localStorageClass;
   filterTodosClass;
   createElementsClass;
+  handlersClass;
 
   // vars
   todoInputcrea
@@ -26,6 +27,7 @@ class Main {
     this.modelClass = new ModelTodos();
     this.filterTodosClass = new FilterTodosClass();
     this.createElementsClass = new CreateElementsClass();
+    this.handlersClass = new HandlersClass();
     this.initPropertiesFromDom();
   };
   initPropertiesFromDom() {
@@ -39,9 +41,9 @@ class Main {
     // javascript shortcomings
     this.addTodo = this.addTodo.bind(this);
     this.filterTodo = this.filterTodo.bind(this);
-    this.handlerClickCompletedButton = this.handlerClickCompletedButton.bind(this);
-    this.handlerClickTrashButton = this.handlerClickTrashButton.bind(this);
-    this.handlerClickCantFixButton = this.handlerClickCantFixButton.bind(this);
+    this.handlersClass.handlerClickCompletedButton = this.handlersClass.handlerClickCompletedButton.bind(this);
+    this.handlersClass.handlerClickTrashButton = this.handlersClass.handlerClickTrashButton.bind(this);
+    this.handlersClass.handlerClickCantFixButton = this.handlersClass.handlerClickCantFixButton.bind(this);
     // end hack
 
     this.todoButton.addEventListener('click', this.addTodo);
@@ -54,9 +56,9 @@ class Main {
       listFromStorage,
       this.toggleCompleted,
       this.toggleCantFix,
-      this.handlerClickCompletedButton,
-      this.handlerClickTrashButton,
-      this.handlerClickCantFixButton
+      this.handlersClass.handlerClickCompletedButton,
+      this.handlersClass.handlerClickTrashButton,
+      this.handlersClass.handlerClickCantFixButton
     );
     this.filterTodosClass.buildDropdownFilterOptions();
   };
@@ -95,38 +97,6 @@ class Main {
       itemInModel.state = state;
     }
   }
-  handlerClickCompletedButton(event) {
-    const item = event.target;
-    const todo = item.parentElement;
-    this.toggleCompleted(todo);
-
-    this.updateModelItemState(event, this.STATES.COMPLETED);
-    let modelToSave = this.modelClass.prepareModelForSaving()
-    this.localStorageClass.saveTheUpdatedModel(modelToSave);
-  }
-  handlerClickTrashButton(event) {
-    const item = event.target;
-    const todo = item.parentElement;
-    const modelId = this.getIdFromEvent(event);
-    const itemInModel = this.modelClass.getItemInModelFromEvent(modelId);
-    if (itemInModel) {
-      this.animateElementAway(todo);
-      this.modelClass.removeFromModel(itemInModel);
-      let modelToSave = this.modelClass.prepareModelForSaving()
-      this.localStorageClass.saveTheUpdatedModel(modelToSave);
-    } else {
-      console.log('we fucked up finding the item in the model correctly');
-    }
-  }
-  handlerClickCantFixButton(event) {
-    const item = event.target;
-    const todo = item.parentElement;
-    this.toggleCantFix(todo);
-    this.updateModelItemState(event, this.STATES.CANT_FIX);
-    let modelToSave = this.modelClass.prepareModelForSaving()
-    this.localStorageClass.saveTheUpdatedModel(modelToSave);
-  }
-
   animateElementAway(element) {
     element.classList.add('fall');
     element.addEventListener('transitionend', function () {
