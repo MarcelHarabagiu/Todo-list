@@ -6,9 +6,10 @@ class Main {
   modelClass
   localStorageClass;
   filterTodosClass;
+  createElementsClass;
 
   // vars
-  todoInput
+  todoInputcrea
   todoButton
   filterOption
   todoButton
@@ -24,6 +25,7 @@ class Main {
     this.localStorageClass = new MyLocalStorage();
     this.modelClass = new ModelTodos();
     this.filterTodosClass = new FilterTodosClass();
+    this.createElementsClass = new CreateElementsClass();
     this.initPropertiesFromDom();
   };
   initPropertiesFromDom() {
@@ -37,94 +39,40 @@ class Main {
     // javascript shortcomings
     this.addTodo = this.addTodo.bind(this);
     this.filterTodo = this.filterTodo.bind(this);
+    this.handlerClickCompletedButton = this.handlerClickCompletedButton.bind(this);
+    this.handlerClickTrashButton = this.handlerClickTrashButton.bind(this);
+    this.handlerClickCantFixButton = this.handlerClickCantFixButton.bind(this);
     // end hack
 
     this.todoButton.addEventListener('click', this.addTodo);
     this.filterOption.addEventListener('change', this.filterTodo);
 
     const listFromStorage = this.localStorageClass.getTodos();
-    this.createElementsFromStorageList(listFromStorage);
+    this.createElementsClass.createElementsFromStorageList(
+      this.modelClass,
+      this.STATES,
+      listFromStorage,
+      this.toggleCompleted,
+      this.toggleCantFix,
+      this.handlerClickCompletedButton,
+      this.handlerClickTrashButton,
+      this.handlerClickCantFixButton
+    );
     this.filterTodosClass.buildDropdownFilterOptions();
   };
-  createElementsFromStorageList(listOfTodoFromStorage) {
-    listOfTodoFromStorage.forEach( item => {
-      const newId = this.modelClass.addToModel(item.text, item.time, item.state);
-      const todoElement = this.createAndShowElementOnDom(item.text, newId, item.time);
-      if (item.state === this.STATES.COMPLETED) {
-        this.toggleCompleted(todoElement);
-      }
-      if (item.state === this.STATES.CANT_FIX) {
-        this.toggleCantFix(todoElement);
-      }
-    });
-  }
+
   addTodo() {
     const curTime = new Date().getTime();
     const todoText = this.todoInput.value;
     const newId = this.modelClass.addToModel(todoText, curTime);
     this.todoInput.value = '';
-    this.createAndShowElementOnDom(todoText, newId, curTime);
+    this.createElementsClass.createAndShowElementOnDom(todoText, newId, curTime);
     let modelToSave = this.modelClass.prepareModelForSaving()
     this.localStorageClass.saveTheUpdatedModel(modelToSave);
-  }
-  createAndShowElementOnDom(text, id, time) {
-    const todoList = document.querySelector('.todo-list');
-    const todoDiv = document.createElement('div');
-    todoDiv.classList.add('todo');
-    const newTodo = document.createElement('li');
-    const timeElement = document.createElement('div');
-
-    let curTime = new Date();
-    let oldTime = new Date(time);
-    let deltaTime = curTime - oldTime; // number
-    let deltaDate = new Date(deltaTime);
-
-    // or
-    // new Date(new Date() - new Date(deltaTime))
-
-    timeElement.innerText = `(${deltaDate.getMinutes()} min old)`;
-    newTodo.innerText = text;
-    newTodo.classList.add('todo-item');
-    todoDiv.setAttribute('modelid', id);
-    todoDiv.appendChild(newTodo);
-    todoDiv.appendChild(timeElement);
-    todoList.appendChild(todoDiv);
-    this.createCompletedButton(todoDiv);
-    this.createTrashButton(todoDiv);
-    this.createCantFixButton(todoDiv);
-    return todoDiv;
   }
   filterTodo(e) {
     let index = e.target.selectedIndex;
     this.filterTodosClass.filterByIndex(index);
-  }
-  createCantFixButton(todoDiv) {
-    const button = document.createElement('button');
-    button.innerText = 'cant fix';
-    this.handlerClickCantFixButton = this.handlerClickCantFixButton.bind(this);
-    button.addEventListener('click', this.handlerClickCantFixButton);
-    todoDiv.appendChild(button);
-  }
-  createTrashButton(todoDiv) {
-    const trashButton = document.createElement('button');
-    this.handlerClickTrashButton = this.handlerClickTrashButton.bind(this);
-    trashButton.addEventListener('click', this.handlerClickTrashButton);
-    trashButton.classList.add('trash-btn');
-    const iconTrashButton = document.createElement('iconTrashButton');
-    iconTrashButton.classList.add('fas', 'fa-trash');
-    trashButton.appendChild(iconTrashButton);
-    todoDiv.appendChild(trashButton);
-  }
-
-  createCompletedButton(todoDiv) {
-    const completedButton = document.createElement('button');
-    this.handlerClickCompletedButton = this.handlerClickCompletedButton.bind(this);
-    completedButton.addEventListener('click', this.handlerClickCompletedButton);
-    completedButton.classList.add('completed-btn');
-    todoDiv.appendChild(completedButton);
-    const icon = document.createElement('i');
-    icon.classList.add('fas', 'fa-check');
-    completedButton.appendChild(icon);
   }
   getIdFromEvent(clickEvent) {
     const item = clickEvent.target;
