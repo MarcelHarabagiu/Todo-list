@@ -10,7 +10,6 @@ class Main {
   handlersClass;
 
   // vars
-  todoInputcrea
   todoButton
   filterOption
   todoButton
@@ -33,7 +32,6 @@ class Main {
   initPropertiesFromDom() {
 
     //select DOM
-    this.todoInput = document.querySelector('.todo-input');
     this.todoButton = document.querySelector('.todo-button');
     this.filterOption = document.querySelector('.filter-todo');
 
@@ -64,10 +62,11 @@ class Main {
   };
 
   addTodo() {
+    const todoInput = document.querySelector('.todo-input');
     const curTime = new Date().getTime();
-    const todoText = this.todoInput.value;
+    const todoText = todoInput.value;
     const newId = this.modelClass.addToModel(todoText, curTime);
-    this.todoInput.value = '';
+    todoInput.value = '';
     this.createElementsClass.createAndShowElementOnDom(todoText, newId, curTime);
     let modelToSave = this.modelClass.prepareModelForSaving()
     this.localStorageClass.saveTheUpdatedModel(modelToSave);
