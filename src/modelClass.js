@@ -1,16 +1,16 @@
 class ModelTodos {
   // class properties
-  modelTodos
+  todoItemClasses
 
   constructor() {
-    this.modelTodos = [];
+    this.todoItemClasses = [];
   }
 
-  removeFromModel(itemToRemove) {
-    this.modelTodos = this.modelTodos.filter(item => item !== itemToRemove);
+  removeFromModel(todoItemClass) {
+    this.todoItemClasses = this.todoItemClasses.filter(item => item !== todoItemClass);
   }
   prepareModelForSaving() {
-    const nonIdList = this.modelTodos.map(item => {
+    const nonIdList = this.todoItemClasses.map(item => {
       return {
         text: item.text,
         time: item.time,
@@ -19,15 +19,17 @@ class ModelTodos {
     });
     return nonIdList;
   }
-  addToModel(text, time, state) {
-    const isFirst = this.modelTodos.length === 0;
-    const lastInList = this.modelTodos[this.modelTodos.length - 1];
+  addToModel(todoItemClass) {
+    const isFirst = this.todoItemClasses.length === 0;
+    const lastInList = this.todoItemClasses[this.todoItemClasses.length - 1];
     const id = isFirst ? 0 : lastInList.id + 1;
-    this.modelTodos.push({ id, text, time, state }); // es6
+    this.todoItemClasses.push(todoItemClass);
     return id;
   }
-  getItemInModelFromEvent(modelId) {
-    const itemInModel = this.modelTodos.find(item => item.id === modelId);
+  getTodoItemClassById(modelId) {
+    const itemInModel = this.todoItemClasses.find(item => {
+      return item.doesIdMatch(modelId);
+    });
     return itemInModel;
   }
 }

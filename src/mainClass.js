@@ -1,3 +1,23 @@
+/**
+ * Ionut todo
+ *
+ *
+ *
+    // code where i create the todo elements (input, complete, delete, cant fix)
+    [].forEach(() => {
+      new TodoItem(parent)
+    })
+
+    craete a new class for EACH of the todo elements
+
+    when you need to create a new todo (view - dom)
+    all you need to do is instantiate a new class
+
+    new TodoItemClass(arguments) // this will be expanded to keep track of the id, its entry in the local storage... etc...
+                      arguments is whatever the TodoItem class needs... this could be the ModelClass, LocalStorageClass, CreateElementsClass, the div parent... whatever...
+ */
+
+
 class Main {
 
   // clas variables / properties
@@ -15,7 +35,7 @@ class Main {
   todoButton
   filterOption
 
-  STATES = {
+  STATES_DELETE_ME = { // todo remove this once load from storage is done
     COMPLETED: 1,
     CANT_FIX: 2
   }
@@ -50,7 +70,7 @@ class Main {
     const listFromStorage = this.localStorageClass.getTodos();
     this.createElementsClass.createElementsFromStorageList(
       this.modelClass,
-      this.STATES,
+      this.STATES_DELETE_ME,
       listFromStorage,
       this.toggleCompleted,
       this.toggleCantFix,
@@ -63,11 +83,14 @@ class Main {
 
   addTodo() {
     const todoInput = document.querySelector('.todo-input');
-    const curTime = new Date().getTime();
     const todoText = todoInput.value;
-    const newId = this.modelClass.addToModel(todoText, curTime);
+    const curTime = new Date().getTime();
+    const todoItemClass = new TodoItemClass(todoText, curTime);
+    const newId = this.modelClass.addToModel(todoItemClass);
+    todoItemClass.setId(newId);
+
     todoInput.value = '';
-    this.createElementsClass.createAndShowElementOnDom(todoText, newId, curTime);
+    // this.createElementsClass.createAndShowElementOnDom(todoText, newId, curTime);
     let modelToSave = this.modelClass.prepareModelForSaving()
     this.localStorageClass.saveTheUpdatedModel(modelToSave);
   }
@@ -81,20 +104,10 @@ class Main {
     const modelId = todo.getAttribute('modelid'); // this is a string
     return Number(modelId);
   }
-  toggleCompleted(element) {
-    element.classList.toggle('completed');
-  }
-  toggleCantFix(element) {
-    element.classList.toggle('state-cantfix');
-  }
   updateModelItemState(clickEvent, state) {
     const modelId = this.getIdFromEvent(clickEvent);
-    const itemInModel = this.modelClass.getItemInModelFromEvent(modelId);
-    if (itemInModel.state === state) {
-      itemInModel.state = undefined;
-    } else {
-      itemInModel.state = state;
-    }
+    const itemClassInModel = this.modelClass.getTodoItemClassById(modelId);
+    itemClassInModel.setState(state);
   }
   animateElementAway(element) {
     element.classList.add('fall');

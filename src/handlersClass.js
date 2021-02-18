@@ -17,10 +17,11 @@ class HandlersClass {
     const item = event.target;
     const todo = item.parentElement;
     const modelId = this.getIdFromEvent(event);
-    const itemInModel = this.modelClass.getItemInModelFromEvent(modelId);
-    if (itemInModel) {
-      this.animateElementAway(todo);
-      this.modelClass.removeFromModel(itemInModel);
+    const itemClassInModel = this.modelClass.getTodoItemClassById(modelId);
+    // todo finish item animation
+    if (itemClassInModel) {
+      // this.animateElementAway(todo);
+      this.modelClass.removeFromModel(itemClassInModel);
       let modelToSave = this.modelClass.prepareModelForSaving()
       this.localStorageClass.saveTheUpdatedModel(modelToSave);
     } else {
