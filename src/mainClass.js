@@ -26,8 +26,6 @@ class Main {
   modelClass
   localStorageClass;
   filterTodosClass;
-  createElementsClass;
-  handlersClass;
 
   // vars
   todoButton
@@ -35,18 +33,10 @@ class Main {
   todoButton
   filterOption
 
-  STATES_DELETE_ME = { // todo remove this once load from storage is done
-    COMPLETED: 1,
-    CANT_FIX: 2
-  }
-
-
   constructor() {
     this.localStorageClass = new MyLocalStorage();
     this.modelClass = new ModelTodos();
     this.filterTodosClass = new FilterTodosClass();
-    this.createElementsClass = new CreateElementsClass();
-    this.handlersClass = new HandlersClass();
     this.initPropertiesFromDom();
   };
   initPropertiesFromDom() {
@@ -59,60 +49,39 @@ class Main {
     // javascript shortcomings
     this.addTodo = this.addTodo.bind(this);
     this.filterTodo = this.filterTodo.bind(this);
-    this.handlersClass.handlerClickCompletedButton = this.handlersClass.handlerClickCompletedButton.bind(this);
-    this.handlersClass.handlerClickTrashButton = this.handlersClass.handlerClickTrashButton.bind(this);
-    this.handlersClass.handlerClickCantFixButton = this.handlersClass.handlerClickCantFixButton.bind(this);
     // end hack
 
     this.todoButton.addEventListener('click', this.addTodo);
     this.filterOption.addEventListener('change', this.filterTodo);
 
-    const listFromStorage = this.localStorageClass.getTodos();
-    this.createElementsClass.createElementsFromStorageList(
-      this.modelClass,
-      this.STATES_DELETE_ME,
-      listFromStorage,
-      this.toggleCompleted,
-      this.toggleCantFix,
-      this.handlersClass.handlerClickCompletedButton,
-      this.handlersClass.handlerClickTrashButton,
-      this.handlersClass.handlerClickCantFixButton
-    );
+    this.loadAndCreateFromLocalStorage();
     this.filterTodosClass.buildDropdownFilterOptions();
   };
+
+  loadAndCreateFromLocalStorage() {
+    const listFromStorage = this.localStorageClass.getTodos();
+    listFromStorage.forEach(item => {
+      const todoItemClass = new TodoItemClass(item.text, item.time, this.modelClass, this.localStorageClass);
+      todoItemClass.setState(item.state);
+      const newId = this.modelClass.addToModel(todoItemClass);
+      todoItemClass.setId(newId);
+    });
+  }
 
   addTodo() {
     const todoInput = document.querySelector('.todo-input');
     const todoText = todoInput.value;
     const curTime = new Date().getTime();
-    const todoItemClass = new TodoItemClass(todoText, curTime);
+    const todoItemClass = new TodoItemClass(todoText, curTime, this.modelClass, this.localStorageClass);
     const newId = this.modelClass.addToModel(todoItemClass);
     todoItemClass.setId(newId);
 
     todoInput.value = '';
-    // this.createElementsClass.createAndShowElementOnDom(todoText, newId, curTime);
     let modelToSave = this.modelClass.prepareModelForSaving()
     this.localStorageClass.saveTheUpdatedModel(modelToSave);
   }
   filterTodo(e) {
     let index = e.target.selectedIndex;
     this.filterTodosClass.filterByIndex(index);
-  }
-  getIdFromEvent(clickEvent) {
-    const item = clickEvent.target;
-    const todo = item.parentElement;
-    const modelId = todo.getAttribute('modelid'); // this is a string
-    return Number(modelId);
-  }
-  updateModelItemState(clickEvent, state) {
-    const modelId = this.getIdFromEvent(clickEvent);
-    const itemClassInModel = this.modelClass.getTodoItemClassById(modelId);
-    itemClassInModel.setState(state);
-  }
-  animateElementAway(element) {
-    element.classList.add('fall');
-    element.addEventListener('transitionend', function () {
-      element.remove();
-    });
   }
 }

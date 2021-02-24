@@ -9,10 +9,20 @@ class TodoItemClass {
   time;
   state;
   elementTodoContainer;
+  modelClass;
+  localStorageClass;
 
-  constructor(text, time) {
+  constructor(text, time, modelClass, localStorageClass) {
     this.text = text;
     this.time = time;
+    this.modelClass = modelClass;
+    this.localStorageClass = localStorageClass;
+    this.bindHandlersToThis();
+  }
+  bindHandlersToThis() {
+    this.handlerClickCompletedButton = this.handlerClickCompletedButton.bind(this);
+    this.handlerClickTrashButton = this.handlerClickTrashButton.bind(this);
+    this.handlerClickCantFixButton = this.handlerClickCantFixButton.bind(this);
   }
   setId(id) {
     this.id = id;
@@ -36,7 +46,7 @@ class TodoItemClass {
   doesIdMatch(id) {
     return this.id === id;
   }
-  createElements() {//, handlerClickCompletedButton, handlerClickTrashButton, handlerClickCantFixButton) {
+  createElements() {
     const todoList = document.querySelector('.todo-list');
     this.elementTodoContainer = document.createElement('div');
     this.elementTodoContainer.classList.add('todo');
@@ -55,10 +65,9 @@ class TodoItemClass {
     this.elementTodoContainer.appendChild(newTodo);
     this.elementTodoContainer.appendChild(timeElement);
     todoList.appendChild(this.elementTodoContainer);
-    this.createCompletedButton(this.elementTodoContainer, undefined);//handlerClickCompletedButton);
-    this.createTrashButton(this.elementTodoContainer, undefined);//handlerClickTrashButton);
-    this.createCantFixButton(this.elementTodoContainer, undefined);//handlerClickCantFixButton);
-    // return this.elementTodoContainer;
+    this.createCompletedButton(this.elementTodoContainer, this.handlerClickCompletedButton);
+    this.createTrashButton(this.elementTodoContainer, this.handlerClickTrashButton);
+    this.createCantFixButton(this.elementTodoContainer, this.handlerClickCantFixButton);
   }
   toggleCompleted(element) {
     element.classList.toggle('completed');
@@ -89,5 +98,55 @@ class TodoItemClass {
     button.innerText = 'cant fix';
     button.addEventListener('click', handlerClickCantFixButton);
     todoDiv.appendChild(button);
+  }
+
+
+  // handlers
+  handlerClickCompletedButton(event) {
+    const item = event.target;
+    const todo = item.parentElement;
+
+    this.updateModelItemState(event, this.STATES.COMPLETED);
+    let modelToSave = this.modelClass.prepareModelForSaving()
+    this.localStorageClass.saveTheUpdatedModel(modelToSave);
+  }
+  handlerClickTrashButton(event) {
+    const item = event.target;
+    const todo = item.parentElement;
+    const modelId = this.getIdFromEvent(event);
+    const itemClassInModel = this.modelClass.getTodoItemClassById(modelId);
+    // todo finish item animation
+    if (itemClassInModel) {
+      this.animateElementAway(todo);
+      this.modelClass.removeFromModel(itemClassInModel);
+      let modelToSave = this.modelClass.prepareModelForSaving()
+      this.localStorageClass.saveTheUpdatedModel(modelToSave);
+    } else {
+      console.log('we fucked up finding the item in the model correctly');
+    }
+  }
+  handlerClickCantFixButton(event) {
+    const item = event.target;
+    const todo = item.parentElement;
+    this.updateModelItemState(event, this.STATES.CANT_FIX);
+    let modelToSave = this.modelClass.prepareModelForSaving()
+    this.localStorageClass.saveTheUpdatedModel(modelToSave);
+  }
+  updateModelItemState(clickEvent, state) {
+    const modelId = this.getIdFromEvent(clickEvent);
+    const itemClassInModel = this.modelClass.getTodoItemClassById(modelId);
+    itemClassInModel.setState(state);
+  }
+  getIdFromEvent(clickEvent) {
+    const item = clickEvent.target;
+    const todo = item.parentElement;
+    const modelId = todo.getAttribute('modelid'); // this is a string
+    return Number(modelId);
+  }
+  animateElementAway(element) {
+    element.classList.add('fall');
+    element.addEventListener('transitionend', function () {
+      element.remove();
+    });
   }
 }
