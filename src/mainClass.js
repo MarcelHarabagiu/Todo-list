@@ -61,10 +61,8 @@ class Main {
   loadAndCreateFromLocalStorage() {
     const listFromStorage = this.localStorageClass.getTodos();
     listFromStorage.forEach(item => {
-      const todoItemClass = new TodoItemClass(item.text, item.time, this.modelClass, this.localStorageClass);
-      todoItemClass.setState(item.state);
-      const newId = this.modelClass.addToModel(todoItemClass);
-      todoItemClass.setId(newId);
+      const todoItemClass = new TodoItemClass(item.text, item.time, this.modelClass, this.localStorageClass, item.state);
+      this.modelClass.addToModel(todoItemClass);
     });
   }
 
@@ -73,8 +71,7 @@ class Main {
     const todoText = todoInput.value;
     const curTime = new Date().getTime();
     const todoItemClass = new TodoItemClass(todoText, curTime, this.modelClass, this.localStorageClass);
-    const newId = this.modelClass.addToModel(todoItemClass);
-    todoItemClass.setId(newId);
+    this.modelClass.addToModel(todoItemClass);
 
     todoInput.value = '';
     let modelToSave = this.modelClass.prepareModelForSaving()

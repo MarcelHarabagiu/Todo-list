@@ -4,7 +4,6 @@ class TodoItemClass {
     CANT_FIX: 2
   }
 
-  id;
   text;
   time;
   state;
@@ -12,22 +11,19 @@ class TodoItemClass {
   modelClass;
   localStorageClass;
 
-  constructor(text, time, modelClass, localStorageClass) {
+  constructor(text, time, modelClass, localStorageClass, state = undefined) {
     this.text = text;
     this.time = time;
     this.modelClass = modelClass;
+    this.state = state;
     this.localStorageClass = localStorageClass;
     this.bindHandlersToThis();
+    this.createElements();
   }
   bindHandlersToThis() {
     this.handlerClickCompletedButton = this.handlerClickCompletedButton.bind(this);
     this.handlerClickTrashButton = this.handlerClickTrashButton.bind(this);
     this.handlerClickCantFixButton = this.handlerClickCantFixButton.bind(this);
-  }
-  setId(id) {
-    this.id = id;
-    this.createElements();
-    this.updateStateView();
   }
   setState(state) {
     this.state = state;
@@ -42,9 +38,6 @@ class TodoItemClass {
         this.toggleCantFix(this.elementTodoContainer);
       }
     }
-  }
-  doesIdMatch(id) {
-    return this.id === id;
   }
   createElements() {
     const todoList = document.querySelector('.todo-list');
@@ -61,7 +54,6 @@ class TodoItemClass {
     timeElement.innerText = `(${deltaDate.getMinutes()} min old)`;
     newTodo.innerText = this.text;
     newTodo.classList.add('todo-item');
-    this.elementTodoContainer.setAttribute('modelid', this.id); // this is where we link these elements on the page with the model - the ID is the same as in the model (todo array)
     this.elementTodoContainer.appendChild(newTodo);
     this.elementTodoContainer.appendChild(timeElement);
     todoList.appendChild(this.elementTodoContainer);
@@ -100,48 +92,22 @@ class TodoItemClass {
     todoDiv.appendChild(button);
   }
 
-
   // handlers
   handlerClickCompletedButton(event) {
-    const item = event.target;
-    const todo = item.parentElement;
-
-    this.updateModelItemState(event, this.STATES.COMPLETED);
+    this.setState(this.STATES.COMPLETED);
     let modelToSave = this.modelClass.prepareModelForSaving()
     this.localStorageClass.saveTheUpdatedModel(modelToSave);
   }
   handlerClickTrashButton(event) {
-    const item = event.target;
-    const todo = item.parentElement;
-    const modelId = this.getIdFromEvent(event);
-    const itemClassInModel = this.modelClass.getTodoItemClassById(modelId);
-    // todo finish item animation
-    if (itemClassInModel) {
-      this.animateElementAway(todo);
-      this.modelClass.removeFromModel(itemClassInModel);
-      let modelToSave = this.modelClass.prepareModelForSaving()
-      this.localStorageClass.saveTheUpdatedModel(modelToSave);
-    } else {
-      console.log('we fucked up finding the item in the model correctly');
-    }
-  }
-  handlerClickCantFixButton(event) {
-    const item = event.target;
-    const todo = item.parentElement;
-    this.updateModelItemState(event, this.STATES.CANT_FIX);
+    this.animateElementAway(this.elementTodoContainer);
+    this.modelClass.removeFromModel(this);
     let modelToSave = this.modelClass.prepareModelForSaving()
     this.localStorageClass.saveTheUpdatedModel(modelToSave);
   }
-  updateModelItemState(clickEvent, state) {
-    const modelId = this.getIdFromEvent(clickEvent);
-    const itemClassInModel = this.modelClass.getTodoItemClassById(modelId);
-    itemClassInModel.setState(state);
-  }
-  getIdFromEvent(clickEvent) {
-    const item = clickEvent.target;
-    const todo = item.parentElement;
-    const modelId = todo.getAttribute('modelid'); // this is a string
-    return Number(modelId);
+  handlerClickCantFixButton(event) {
+    this.setState(this.STATES.CANT_FIX);
+    let modelToSave = this.modelClass.prepareModelForSaving()
+    this.localStorageClass.saveTheUpdatedModel(modelToSave);
   }
   animateElementAway(element) {
     element.classList.add('fall');
