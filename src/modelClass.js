@@ -22,9 +22,7 @@ class ModelTodos {
   addToModel(todoItemClass) {
     const isFirst = this.todoItemClasses.length === 0;
     const lastInList = this.todoItemClasses[this.todoItemClasses.length - 1];
-    const id = isFirst ? 0 : lastInList.id + 1;
     this.todoItemClasses.push(todoItemClass);
-    return id;
   }
   getTodoItemClassById(modelId) {
     const itemInModel = this.todoItemClasses.find(item => {

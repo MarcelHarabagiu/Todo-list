@@ -8,7 +8,7 @@
       new TodoItem(parent)
     })
 
-    craete a new class for EACH of the todo elements
+    create a new class for EACH of the todo elements
 
     when you need to create a new todo (view - dom)
     all you need to do is instantiate a new class
@@ -20,7 +20,7 @@
 
 class Main {
 
-  // clas variables / properties
+  // class variables / properties
 
   // class type vars
   modelClass
